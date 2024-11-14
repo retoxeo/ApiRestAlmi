@@ -53,11 +53,13 @@ use Symfony\Component\Serializer\Serializer;
 use Symfony\Component\Serializer\SerializerInterface;
 use Symfony\Component\Serializer\Exception\ExceptionInterface;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; // Asegúrate de usar el espacio de nombres correcto
+use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface; 
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\File\UploadedFile;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Filesystem\Exception\IOExceptionInterface;
+use Symfony\Component\String\Slugger\SluggerInterface;
+
 
 class ApiController extends AbstractController
 {
@@ -595,92 +597,46 @@ class ApiController extends AbstractController
 
         return $this->json(['message' => 'Producto eliminado exitosamente'], Response::HTTP_OK);
     }
-
-
-
-    // Fotos_Producto
-    #[Route('/xeo/fotos_producto/{id}', name: 'app_api_fotos_producto_get', methods:['GET'])]
-    public function GetFotosProducto($id, Request $request, ProductoRepository $productoRepository): Response
+    
+    
+    #[Route('/xeo/fotos_producto', name: 'upload_product_photo', methods: ['POST'])]
+    public function uploadProductPhoto(Request $request, SluggerInterface $slugger): Response
     {
-        $producto = $productoRepository->find($id);
-    
-        if (!$producto) {
-            return $this->json(['message' => 'Producto no encontrado'], Response::HTTP_NOT_FOUND);
+        try {
+            $photoFile = $request->files->get('photo[]'); 
+
+            if (!$photoFile) {
+                throw new \Exception("No se ha recibido ninguna foto.");
+            }
+
+            $targetDirectory = $this->getParameter('kernel.project_dir') . '/assets/productos';
+            
+            $filesystem = new Filesystem();
+            if (!$filesystem->exists($targetDirectory)) {
+                $filesystem->mkdir($targetDirectory);
+            }
+
+            $originalFilename = pathinfo($photoFile->getClientOriginalName(), PATHINFO_FILENAME);
+            $safeFilename = $slugger->slug($originalFilename);
+            $newFilename = $safeFilename . '-' . uniqid() . '.' . $photoFile->guessExtension();
+
+            $photoFile->move($targetDirectory, $newFilename);
+
+            return $this->json([
+                'message' => 'Foto del producto creada exitosamente',
+                'filename' => $newFilename
+            ]);
+
+        } catch (\Exception $e) {
+            return $this->json([
+                'message' => 'Hubo un error al cargar la foto.',
+                'error' => $e->getMessage()
+            ], 500);
         }
-    
-        // Filtrar las fotos eliminadas (si hay alguna forma de marcar fotos como eliminadas, en vez de borrarlas)
-        $fotos = [];
-        foreach ($producto->getFotosProductos() as $foto) { 
-            $fotos[] = [
-                'nombre' => $foto->getNombre(),
-                'url' => $request->getSchemeAndHttpHost() . '/assets/productos/' . $foto->getNombre(),
-            ];
-        }
-    
-        return $this->json(['fotos' => $fotos]);
-    }
-    
-    
-
-
-    #[Route('/xeo/fotos_producto', name: 'app_api_fotos_producto_create', methods: ['POST'])]
-public function CreateFotoProducto(Request $request, EntityManagerInterface $entityManager, ProductoRepository $productoRepository): Response
-{
-    // Obtener los datos del cuerpo de la solicitud
-    $data = json_decode($request->getContent(), true);
-
-    // Verificar si los datos requeridos están presentes
-    if (!isset($data['nombre']) || !isset($data['id_producto'])) {
-        return $this->json(['message' => 'Datos incompletos'], Response::HTTP_BAD_REQUEST);
     }
 
-    // Buscar el producto por el ID
-    $producto = $productoRepository->find($data['id_producto']);
-    if (!$producto) {
-        return $this->json(['message' => 'Producto no encontrado'], Response::HTTP_NOT_FOUND);
-    }
-
-    // Crear la foto del producto
-    $fotoProducto = new FotosProducto();
-    $fotoProducto->setNombre($data['nombre']);
-    $fotoProducto->setProducto($producto);
-
-    // Persistir la foto
-    $entityManager->persist($fotoProducto);
-    $entityManager->flush();
-
-    return $this->json(['message' => 'Foto del producto creada exitosamente'], Response::HTTP_CREATED);
-}
-
     
-#[Route('/xeo/fotos_producto/{id}', name: 'app_api_fotos_producto_delete', methods: ['DELETE'])]
-public function DeleteFotoProductoPorId($id, EntityManagerInterface $entityManager, FotosProductoRepository $fotosProductoRepository, ProductoRepository $productoRepository): Response
-{
-    // Buscar la foto por su ID
-    $fotoProducto = $fotosProductoRepository->find($id);
-
-    // Verificar si la foto existe
-    if (!$fotoProducto) {
-        return $this->json(['message' => 'Foto no encontrada'], Response::HTTP_NOT_FOUND);
-    }
-
-    // Obtener el producto asociado a la foto
-    $producto = $fotoProducto->getProducto();
-
-    // Eliminar la foto
-    $entityManager->remove($fotoProducto);
-    $entityManager->flush(); // Guardar los cambios en la base de datos
-
-    // Actualizar la lista de fotos del producto
-    $producto->getFotosProductos()->removeElement($fotoProducto);
-    $entityManager->persist($producto);
-    $entityManager->flush();
-
-    return $this->json(['message' => 'Foto del producto eliminada exitosamente'], Response::HTTP_OK);
-}
-
-
-
+    
 
 
     // Consola
@@ -894,7 +850,27 @@ public function DeleteFotoProductoPorId($id, EntityManagerInterface $entityManag
         return $this->json(['message' => 'Videojuego actualizado exitosamente'], Response::HTTP_OK);
     }
 
-    
+    #[Route('/xeo/videojuegos/{id}', name: 'app_api_videojuegos_delete', methods:['DELETE'])]
+public function DeleteVideojuego(
+    $id,
+    VideojuegoRepository $videojuegoRepository,
+    EntityManagerInterface $entityManager
+): Response {
+    // Buscar el Videojuego por su ID
+    $videojuego = $videojuegoRepository->find($id);
+
+    // Verificar si el Videojuego existe
+    if (!$videojuego) {
+        return $this->json(['message' => 'Videojuego no encontrado'], Response::HTTP_NOT_FOUND);
+    }
+
+    // Eliminar el videojuego de la base de datos
+    $entityManager->remove($videojuego);
+    $entityManager->flush();
+
+    return $this->json(['message' => 'Videojuego eliminado exitosamente'], Response::HTTP_OK);
+}
+
     
     // Genero
     #[Route('/xeo/generos', name: 'app_api_generos', methods:['GET'])]
@@ -1153,68 +1129,48 @@ public function DeleteFotoProductoPorId($id, EntityManagerInterface $entityManag
         ], Response::HTTP_CREATED);
     }
 
-    #[Route('/xeo/pedidos/{id}', name: 'app_api_pedidos_update', methods:['PUT'])]
-    public function UpdatePedido(Request $request,EntityManagerInterface $entityManager,PedidoRepository $pedidoRepository,UsuarioRepository $usuarioRepository,EstadoRepository $estadoRepository,$id): Response {
-
+    #[Route('/xeo/pedidos/{id}/edit', name: 'app_api_pedidos_update', methods: ['POST'])]
+    public function updatePedido(
+        Request $request,
+        EntityManagerInterface $entityManager,
+        PedidoRepository $pedidoRepository,
+        EstadoRepository $estadoRepository,
+        $id
+    ): Response {
+        // Buscar el pedido por el ID
         $pedido = $pedidoRepository->find($id);
-
         if (!$pedido) {
-            return $this->json(['message' => 'Pedido no encontrado'], Response::HTTP_NOT_FOUND);
+            throw $this->createNotFoundException('No se encontró el pedido');
         }
-
-        $data = json_decode($request->getContent(), true);
-
-        if (isset($data['fecha_inicio'])) {
-            $pedido->setFechaInicio(new \DateTime($data['fecha_inicio']));
+    
+        // Obtener los valores del formulario
+        $fechaFin = $request->get('fechaFin');
+        $estado = $request->get('estado');
+    
+        // Actualizar solo los campos permitidos (fecha_fin y estado)
+        if ($fechaFin) {
+            // Asegurarse de que se pase una fecha válida
+            $pedido->setFechaFin(new \DateTime($fechaFin));
         }
-        if (isset($data['fecha_fin'])) {
-            $pedido->setFechaFin($data['fecha_fin'] ? new \DateTime($data['fecha_fin']) : null);
-        }
-        if (isset($data['descripcion'])) {
-            $pedido->setDescripcion($data['descripcion']);
-        }
-        if (isset($data['pais'])) {
-            $pedido->setPais($data['pais']);
-        }
-        if (isset($data['provincia'])) {
-            $pedido->setProvincia($data['provincia']);
-        }
-        if (isset($data['cp'])) {
-            $pedido->setCp($data['cp']);
-        }
-        if (isset($data['ciudad'])) {
-            $pedido->setCiudad($data['ciudad']);
-        }
-        if (isset($data['calle'])) {
-            $pedido->setCalle($data['calle']);
-        }
-        if (isset($data['numero'])) {
-            $pedido->setNumero($data['numero']);
-        }
-
-        if (isset($data['id_usuario'])) {
-            $usuario = $usuarioRepository->find($data['id_usuario']);
-            if ($usuario) {
-                $pedido->setUsuario($usuario);
+    
+        if ($estado) {
+            // Buscar el estado por su nombre
+            $estadoEntity = $estadoRepository->findOneBy(['nombre' => $estado]);
+            if ($estadoEntity) {
+                $pedido->setEstado($estadoEntity);
             } else {
-                return $this->json(['message' => 'Usuario no encontrado'], Response::HTTP_NOT_FOUND);
-            }
-        }
-
-        if (isset($data['id_estado'])) {
-            $estado = $estadoRepository->find($data['id_estado']);
-            if ($estado) {
-                $pedido->setEstado($estado);
-            } else {
+                // Si el estado no existe, se puede devolver un error
                 return $this->json(['message' => 'Estado no encontrado'], Response::HTTP_NOT_FOUND);
             }
         }
-
-        $entityManager->persist($pedido);
-        $entityManager->flush(); 
-
+    
+        // Persistir los cambios
+        $entityManager->flush();
+    
+        // Devolver una respuesta exitosa
         return $this->json(['message' => 'Pedido actualizado exitosamente'], Response::HTTP_OK);
     }
+    
     
     // Estado
     #[Route('/xeo/estados', name: 'app_api_estados', methods:['GET'])]
@@ -1686,7 +1642,48 @@ public function detalleProducto($id, ProductoRepository $productoRepository, Pro
     ]);
 }
 
+#[Route('/xeo/productos/{id}/eliminar-completo', name: 'app_api_productos_full_delete', methods: ['DELETE'])]
+public function DeleteProductoCompleto(
+    $id,
+    VideojuegoRepository $videojuegoRepository,
+    FotosProductoRepository $fotosProductoRepository,
+    ProductoRepository $productoRepository,
+    EntityManagerInterface $entityManager
+): Response {
+    try {
+        // Paso 1: Buscar el Producto principal
+        $producto = $productoRepository->find($id);
 
+        if (!$producto) {
+            return $this->json(['message' => 'Producto no encontrado'], Response::HTTP_NOT_FOUND);
+        }
+
+        // Paso 2: Eliminar Videojuego asociado, si existe
+        $videojuego = $videojuegoRepository->findOneBy(['producto' => $producto]);
+        if ($videojuego) {
+            $entityManager->remove($videojuego);
+        }
+
+        // Paso 3: Eliminar Fotos asociadas
+        $fotos = $fotosProductoRepository->findBy(['producto' => $producto]);
+        foreach ($fotos as $foto) {
+            $entityManager->remove($foto);
+        }
+
+        // Paso 4: Eliminar el Producto
+        $entityManager->remove($producto);
+
+        // Guardar todos los cambios en una única transacción
+        $entityManager->flush();
+
+        // Redirigir a la página principal de productos después de la eliminación
+        return $this->redirectToRoute('app_productos_index');  // Asegúrate de tener esta ruta configurada
+
+    } catch (\Exception $e) {
+        // Si ocurre un error, capturamos la excepción y enviamos un mensaje adecuado
+        return $this->json(['message' => 'Error al eliminar el producto: ' . $e->getMessage()], Response::HTTP_INTERNAL_SERVER_ERROR);
+    }
+}
 
 
     private function convertToJson($data): JsonResponse

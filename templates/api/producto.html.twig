@@ -164,6 +164,7 @@
                 </div>
                 <button type="button" class="btn-editar" id="editarBtn" onclick="toggleEdit()">Editar Producto</button>
                 <button type="submit" class="btn-editar" id="guardarBtn" style="display:none;">Guardar Cambios</button>
+                <button type="button" class="btn-editar btn-danger" id="eliminarBtn" onclick="eliminarProducto({{ producto.id }})">Eliminar Producto</button>
             </form>
         </div>
     </div>
@@ -407,6 +408,33 @@
         document.getElementById('guardarBtn').style.display = 'none';
         document.getElementById('editarBtn').style.display = 'block';
     }
+
+      function eliminarProducto(idProducto) {
+    if (confirm('¿Estás seguro de que deseas eliminar este producto? Esta acción no se puede deshacer.')) {
+        fetch(`/xeo/productos/${idProducto}/eliminar-completo`, {
+            method: 'DELETE',
+            headers: { 'Content-Type': 'application/json' }
+        })
+        .then(response => response.json()) // Esperar que la respuesta sea un JSON
+        .then(data => {
+            // Verificamos si la eliminación fue exitosa
+            if (data.message && data.message.includes('exitosamente')) {
+                window.location.href = 'https://retoxeo8.duckdns.org/inicio'; // Redirige a la página de inicio
+            } else {
+
+               window.location.href = 'https://retoxeo8.duckdns.org/inicio';  // Recarga la página en caso de error
+            }
+        })
+        .catch(error => {
+            console.error('Error en la solicitud:', error);
+            window.location.reload(); // Recarga la página en caso de error
+        });
+    } else {
+        alert('Eliminación cancelada.');
+        window.location.reload(); // Recarga la página si el usuario cancela
+    }
+}
+
 </script>
 
 {% endblock %}
