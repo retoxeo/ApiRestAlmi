@@ -1,0 +1,1009 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Página Principal{% endblock %}
+
+{% block stylesheets %}
+    <style>
+        /* Contenedor principal con margen a la izquierda y derecha */
+        .main-container {
+            margin: 0 20px; /* 20px de margen a la izquierda y derecha */
+        }
+
+        /* Estilos para los botones de las pestañas */
+        .buttons {
+            display: flex;
+            margin-bottom: 20px;
+        }
+
+        .tab-button {
+            padding: 10px;
+            margin-right: 5px;
+            cursor: pointer;
+            background-color: #f0f0f0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-decoration: none;
+            color: inherit;
+        }
+
+        .tab-button.active {
+            background-color: #007bff;
+            color: white;
+        }
+
+        .tab-button:hover {
+            background-color: #007bff;
+            color: white;
+        }
+
+        /* Estilos para el contenido de los tabs */
+        .tab-content {
+            margin-top: 20px;
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        /* Estilo para la tabla de incidencias */
+        .table-incidencias, .table-pedidos {
+            width: 100%; /* Hace que la tabla ocupe el 100% del contenedor */
+            border-collapse: collapse;
+            margin: 20px 0; /* Espacio arriba y abajo de la tabla */
+        }
+
+        .table-incidencias th, .table-incidencias td, .table-pedidos th, .table-pedidos td {
+            padding: 12px;
+            text-align: left;
+            border: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .table-incidencias th, .table-pedidos th {
+            background-color: #f4f4f4;
+            font-weight: bold;
+        }
+
+        .table-incidencias tr:nth-child(even), .table-pedidos tr:nth-child(even) {
+            background-color: #f9f9f9;
+        }
+
+        .table-incidencias tr:hover, .table-pedidos tr:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Estilo para el filtro de estado */
+        .filter-container {
+            display: flex;
+            align-items: center;
+            margin-left: 10px;
+        }
+
+        /* Aquí modificamos el estilo de la lupa para que sea en blanco y negro */
+        .filter-icon {
+            font-size: 20px;
+            cursor: pointer;
+            margin-left: 10px;
+            color: #000; /* Ícono en negro por defecto */
+        }
+
+        .filter-dropdown {
+            display: none;
+            position: absolute;
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding: 10px;
+            z-index: 10;
+        }
+
+        .filter-dropdown.active {
+            display: block;
+        }
+
+        .filter-dropdown a {
+            display: block;
+            padding: 8px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .filter-dropdown a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* Contenedor del título y el ícono */
+        .filter-title {
+            display: flex;
+            align-items: center;
+        }
+
+        /* Estilo para los íconos de editar y eliminar */
+        .action-icons {
+            cursor: pointer;
+            display: flex;
+            justify-content: space-around;
+        }
+
+        .action-icons span {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+
+        /* Íconos de edición y eliminación en blanco y negro */
+        .action-icons .icon-edit {
+            color: #000; /* Ícono negro para editar */
+        }
+
+        .action-icons .icon-delete {
+            color: #000; /* Ícono negro para eliminar */
+        }
+
+        /* Cambiar color a blanco cuando el fondo es oscuro */
+        .icon-edit:hover, .icon-delete:hover {
+            color: #fff; /* Cambia el color del ícono a blanco cuando se pasa el mouse */
+        }
+        .search-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .search-container input[type="text"] {
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+            font-size: 14px;
+        }
+        .search-container i {
+            position: absolute;
+            right: 10px;
+            font-size: 20px;
+            cursor: pointer;
+            color: #000;
+        }
+        .add-product-card {
+            flex-basis: calc(33.33% - 20px); /* Usa flex-basis en lugar de width */
+            flex-shrink: 0; /* Impide que la tarjeta se reduzca */
+            min-height: 300px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border: 2px dashed #000;
+            border-radius: 5px;
+            color: #000;
+            background-color: #fff;
+            cursor: pointer;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        .add-product-card i {
+            font-size: 30px;
+            margin-bottom: 10px;
+        }
+
+        .add-product-card p {
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .modal {
+    display: none; /* Ocultar por defecto */
+    position: fixed;
+    z-index: 1; /* Asegura que el modal se muestre sobre el contenido */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4); /* Fondo oscuro */
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+form label {
+    display: block;
+    margin: 8px 0;
+}
+
+form input, form textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+form button {
+    padding: 10px 20px;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+form button:hover {
+    background-color: #45a049;
+}
+
+.hidden {
+        display: none;
+    }
+
+    .button-container {
+    text-align: right;
+    margin-bottom: 10px;
+}
+
+.btn-add-incidencia {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-add-incidencia:hover {
+    background-color: #0056b3;
+}
+/* Ocultar columnas específicas */
+.hidden-column {
+    display: none;
+}
+
+
+    </style>
+{% endblock %}
+
+{% block body %}
+    <div class="main-container">
+        <h1>XEO</h1>
+
+        <!-- Contenedor para los Botones -->
+        <div class="buttons">
+            <button class="tab-button active" data-tab="productos">Productos</button>
+            <button class="tab-button" data-tab="incidencias">Incidencias</button>
+            <button class="tab-button" data-tab="pedidos">Pedidos</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Contenido de los Tabs -->
+            
+            <div class="tab-pane productos active">
+                <h2>Productos</h2>
+                <div class="search-container">
+                    <input type="text" placeholder="Buscar productos..." id="search-productos">
+                    <i class="fas fa-search"></i>
+                </div>
+                {% if productosConFotos is not empty %}
+                    <div class="productos-grid">
+                        {% for item in productosConFotos %}
+                            <div class="producto-card">
+                                <a href="{{ path('producto_detalle', { 'id': item.producto.id }) }}">
+                                    {% if item.fotos is not empty %}
+                                        <img src="https://retoxeo8.duckdns.org/{{ item.fotos[0].url }}" alt="{{ item.fotos[0].nombre }}" class="producto-foto">
+                                    {% else %}
+                                        <p>No hay fotos disponibles para este producto</p>
+                                    {% endif %}
+                                </a>
+                                <h3>{{ item.producto.nombre }}</h3>
+                            </div>
+                        {% endfor %}
+                        <div class="add-product-card">
+                            <i class="fas fa-plus"></i>
+                            <p>Añadir producto</p>
+                        </div>
+                        <div id="addProductModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" id="closeModal">&times;</span>
+        <h2>Añadir Producto</h2>
+        <form id="addProductForm">
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre" required>
+            
+            <label for="descripcion">Descripción:</label>
+            <textarea id="descripcion" name="descripcion" required></textarea>
+
+            <label for="precio">Precio:</label>
+            <input type="number" id="precio" name="precio" step="0.01" required>
+
+            <label for="fecha_lanzamiento">Fecha de lanzamiento:</label>
+            <input type="date" id="fecha_lanzamiento" name="fecha_lanzamiento" required>
+
+            <label for="desarrollador">Desarrollador:</label>
+            <input type="text" id="desarrollador" name="desarrollador" required>
+
+            <!-- Campo para seleccionar el tipo de producto -->
+            <label for="tipo_producto">Tipo de Producto:</label>
+            <select id="tipo_producto" name="tipo_producto" required onchange="mostrarCampos()">
+                <option value="" disabled selected>Selecciona un tipo de producto</option>
+                <option value="consola">Consola</option>
+                <option value="videojuego">Videojuego</option>
+                <option value="dispositivo_movil">Dispositivo Móvil</option>
+            </select>
+
+            <!-- Consola -->
+            <div id="consola_fields" class="hidden">
+                <label for="almacenamiento_consola">Almacenamiento:</label>
+                <input type="text" id="almacenamiento_consola" name="almacenamiento_consola">
+            </div>
+
+            <!-- Videojuego -->
+            <div id="videojuego_fields" class="hidden">
+                <label for="precio_alquiler">Precio Alquiler:</label>
+                <input type="number" id="precio_alquiler" name="precio_alquiler" step="0.01">
+                
+                <label for="pegi">Pegi:</label>
+                <input type="text" id="pegi" name="pegi">
+            </div>
+
+            <!-- Dispositivo Móvil -->
+            <div id="dispositivo_movil_fields" class="hidden">
+                <label for="sistema_operativo">Sistema Operativo:</label>
+                <input type="text" id="sistema_operativo" name="sistema_operativo">
+                
+                <label for="tipo">Tipo:</label>
+                <input type="text" id="tipo" name="tipo">
+                
+                <label for="ram">RAM:</label>
+                <input type="text" id="ram" name="ram">
+                
+                <label for="procesador">Procesador:</label>
+                <input type="text" id="procesador" name="procesador">
+                
+                <label for="almacenamiento_movil">Almacenamiento:</label>
+                <input type="text" id="almacenamiento_movil" name="almacenamiento_movil">
+            </div>
+
+            <label for="fotos">Fotos:</label>
+            <input type="file" id="fotos" name="fotos[]" accept="image/*" multiple>
+
+            <button type="submit">Crear Producto</button>
+        </form>
+    </div>
+</div>
+                    </div>
+                {% else %}
+                    <p>No hay productos disponibles.</p>
+                {% endif %}
+            </div>
+
+            <div class="tab-pane incidencias">
+                <div class="filter-title">
+                    <h2>Incidencias</h2>
+                    <div class="filter-container">
+                        <!-- Usamos la lupa de Font Awesome en blanco y negro -->
+                        <i class="fas fa-search filter-icon"></i> <!-- Ícono de lupa -->
+                        <div class="filter-dropdown">
+                            <a href="#" class="filter-option" data-filter="todos">Todos</a>
+                            {% for estado in estados %}
+                                {% if estado.nombre in ['Pendiente', 'En Proceso', 'Resuelto'] %}
+                                     <a href="#" class="filter-option" data-filter="{{ estado.nombre|lower }}">{{ estado.nombre }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Botón para abrir el modal -->
+<!-- Botón para abrir el modal -->
+<div class="button-container">
+    <button class="btn-add-incidencia" data-bs-toggle="modal" data-bs-target="#modalAñadirIncidencia">Añadir Incidencia</button>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="modalAñadirIncidencia" tabindex="-1" aria-labelledby="modalAñadirIncidenciaLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="modalAñadirIncidenciaLabel">Añadir Incidencia</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <!-- Formulario dentro del modal -->
+       <form id="formAñadirIncidencia" action="{{ path('app_api_incidencias_create') }}" method="POST">
+    <!-- Fecha Inicio -->
+    <div class="mb-3">
+        <label for="fechaInicio" class="form-label">Fecha Inicio</label>
+        <input type="date" class="form-control" id="fechaInicio" name="fechaInicio" required>
+    </div>
+
+    <!-- Fecha Fin -->
+    <div class="mb-3">
+        <label for="fechaFin" class="form-label">Fecha Fin</label>
+        <input type="date" class="form-control" id="fechaFin" name="fechaFin">
+    </div>
+
+    <!-- Descripción -->
+    <div class="mb-3">
+        <label for="descripcion" class="form-label">Descripción</label>
+        <textarea class="form-control" id="descripcion" name="descripcion" rows="3" required></textarea>
+    </div>
+
+    <!-- Usuario (Id_usuario) -->
+    <div class="mb-3">
+        <label for="idUsuario" class="form-label">Usuario</label>
+        <select class="form-select" id="idUsuario" name="idUsuario" required>
+            <option value="" disabled selected>Selecciona un usuario</option>
+            {% for usuario in usuarios %}
+                <option value="{{ usuario.id }}">{{ usuario.correo }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Botón para enviar el formulario -->
+    <button type="submit" class="btn btn-primary">Guardar Incidencia</button>
+</form>
+
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Modal de edición de incidencia -->
+<div class="modal fade" id="modalEditarIncidencia" tabindex="-1" aria-labelledby="modalEditarIncidenciaLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarIncidenciaLabel">Editar Incidencia</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- El formulario de edición se mantiene igual, pero ahora se ajusta con JavaScript -->
+            <form id="formEditarIncidencia" action="{{ path('app_api_incidencias_update', {id: 0}) }}" method="POST">
+    <input type="hidden" name="_method" value="PUT">
+
+                    
+                    <!-- Fecha Fin -->
+                    <div class="mb-3">
+                        <label for="fechaFin" class="form-label">Fecha Fin</label>
+                        <input type="date" class="form-control" id="fechaFin" name="fechaFin">
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-3">
+                        <label for="estado" class="form-label">Estado</label>
+                        <select class="form-select" id="estado" name="estado">
+                            <option value="Pendiente">Pendiente</option>
+                            <option value="En Proceso">En Proceso</option>
+                            <option value="Resuelto">Resuelto</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Actualizar Incidencia</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Tabla de incidencias -->
+<table class="table-incidencias">
+    <thead>
+        <tr>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>Descripcion</th>
+            <th>Departamento</th>
+            <th>Usuario</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for incidencia in incidencias %}
+            <tr class="incidencia {{ incidencia.estado.nombre|lower }}">
+                <td>{{ incidencia.fechaInicio|date("d-m-Y") }}</td>
+                <td>
+                    {% if incidencia.fechaFin %}
+                        {{ incidencia.fechaFin|date("d-m-Y") }}
+                    {% else %}
+                        <!-- Si fechaFin es null, no mostramos nada -->
+                    {% endif %}
+                </td>
+                <td>{{ incidencia.descripcion }}</td>
+                <td>{{ incidencia.departamento.nombre }}</td>
+                {% if incidencia.usuario is not null %}
+                    <td>{{ incidencia.usuario.correo }}</td>
+                {% endif %}
+                <td>{{ incidencia.estado.nombre }}</td>
+                <td class="action-icons">
+                    <!-- Botón para editar -->
+                    <button class="btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditarIncidencia"
+                            data-id="{{ incidencia.id }}"
+                            data-fecha-fin="{{ incidencia.fechaFin ? incidencia.fechaFin|date('Y-m-d') : '' }}"
+                            data-estado="{{ incidencia.estado.nombre }}">
+                        Editar
+                    </button>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="7">No hay incidencias registradas.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+            </div>
+
+            <div class="tab-pane pedidos">
+                <div class="filter-title">
+                    <h2>Pedidos</h2>
+                    <div class="filter-container">
+                        <!-- Usamos la lupa de Font Awesome en blanco y negro -->
+                        <i class="fas fa-search filter-icon"></i> <!-- Ícono de lupa -->
+                        <div class="filter-dropdown">
+                            <a href="#" class="filter-option" data-filter="todos">Todos</a>
+                            {% for estado in estados %}
+                                {% if estado.nombre != 'Resuelto' %} <!-- Excluir "Resuelto" -->
+                                    <a href="#" class="filter-option" data-filter="{{ estado.nombre|lower }}">{{ estado.nombre }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+
+              <!-- Modal de edición de pedido -->
+<div class="modal fade" id="modalEditarPedido" tabindex="-1" aria-labelledby="modalEditarPedidoLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="modalEditarPedidoLabel">Editar Pedido</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <!-- El formulario de edición -->
+                <form id="formEditarPedido" action="{{ path('app_api_pedidos_update', {id: 0}) }}" method="POST">
+                    <input type="hidden" name="_method" value="PUT">
+                    
+                    <!-- Fecha Fin -->
+                    <div class="mb-3">
+                        <label for="fechaFin" class="form-label">Fecha Fin</label>
+                        <input type="date" class="form-control" id="fechaFin" name="fecha_fin">
+                    </div>
+
+                    <!-- Estado -->
+                    <div class="mb-3">
+                        <label for="estado" class="form-label">Estado</label>
+                        <select class="form-select" id="estado" name="estado">
+                            {% for estado in estados %}
+                                {% if estado.nombre != 'Resuelto' %}
+                                    <option value="{{ estado.nombre }}" {% if estado.nombre == 'estado_actual' %}selected{% endif %}>{{ estado.nombre }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Actualizar Pedido</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+<!-- Tabla de pedidos -->
+<table class="table-pedidos">
+    <thead>
+        <tr>
+            <th>Descripción</th>
+            <th>Fecha Inicio</th>
+            <th>Fecha Fin</th>
+            <th>País</th>
+            <th>Provincia</th>
+            <th>Código Postal</th>
+            <th>Ciudad</th>
+            <th>Calle</th>
+            <th>Número</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for pedido in pedidos %}
+            <tr class="pedido {{ pedido.estado.nombre|lower }}">
+                <td>{{ pedido.descripcion }}</td>
+                <td>{{ pedido.fechaInicio|date("d-m-Y") }}</td>
+                <td>
+                    {% if pedido.fechaFin %}
+                        {{ pedido.fechaFin|date("d-m-Y") }}
+                    {% else %}
+                        <!-- Si fechaFin es null, no mostramos nada -->
+                    {% endif %}
+                </td>
+                <td>{{ pedido.pais }}</td>
+                <td>{{ pedido.provincia }}</td>
+                <td>{{ pedido.cp }}</td>
+                <td>{{ pedido.ciudad }}</td>
+                <td>{{ pedido.calle }}</td>
+                <td>{{ pedido.numero }}</td>
+                <td>{{ pedido.estado.nombre }}</td>
+                <td class="action-icons">
+                    <!-- Botón para editar -->
+                    <button class="btn-edit" data-bs-toggle="modal" data-bs-target="#modalEditarPedido"
+                            data-id="{{ pedido.id }}"
+                            data-fecha-fin="{{ pedido.fechaFin ? pedido.fechaFin|date('Y-m-d') : '' }}"
+                            data-estado="{{ pedido.estado.nombre }}">
+                        Editar
+                    </button>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="11">No hay pedidos registrados.</td>
+            </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Agregar el script para manejar las interacciones de las pestañas y el filtro -->
+    <script src="https://kit.fontawesome.com/a076d05399.js"></script> <!-- Font Awesome para los íconos -->
+    <!-- CSS de Bootstrap -->
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+
+<!-- Iconos de FontAwesome (opcional para los iconos de edición) -->
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+<!-- JS de Bootstrap -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+
+
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+    const tabs = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-pane');
+    const filterIcons = document.querySelectorAll('.filter-icon');
+    const filterDropdowns = document.querySelectorAll('.filter-dropdown');
+    const filterOptions = document.querySelectorAll('.filter-option');
+    const addProductCard = document.querySelector('.add-product-card');
+    const modal = document.getElementById('addProductModal');
+    const closeModalButton = document.getElementById('closeModal');
+    const addProductForm = document.getElementById('addProductForm');
+    const searchInputProductos = document.getElementById('search-productos');
+    const fotosContainer = document.getElementById('fotos-container');
+
+    // Manejar la interacción de las pestañas
+    tabs.forEach(tab => {
+        tab.addEventListener('click', () => {
+            tabs.forEach(t => t.classList.remove('active'));
+            tabContents.forEach(content => content.classList.remove('active'));
+
+            tab.classList.add('active');
+            const tabContent = document.querySelector(`.tab-pane.${tab.getAttribute('data-tab')}`);
+            tabContent.classList.add('active');
+        });
+    });
+
+    // Filtrar incidencias y pedidos
+    filterIcons.forEach((filterIcon, index) => {
+        filterIcon.addEventListener('click', () => {
+            filterDropdowns[index].classList.toggle('active');
+        });
+    });
+
+    filterOptions.forEach(option => {
+        option.addEventListener('click', (e) => {
+            const filterValue = e.target.getAttribute('data-filter');
+            const activeTab = document.querySelector('.tab-button.active').getAttribute('data-tab');
+
+            let rows;
+            if (activeTab === 'incidencias') {
+                rows = document.querySelectorAll('.incidencia');
+            } else if (activeTab === 'pedidos') {
+                rows = document.querySelectorAll('.pedido');
+            }
+
+            rows.forEach(row => {
+                if (filterValue === 'todos' || row.classList.contains(filterValue)) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            const dropdown = document.querySelector('.filter-dropdown.active');
+            if (dropdown) {
+                dropdown.classList.remove('active');
+            }
+        });
+    });
+
+    // Filtrar productos por nombre
+    function filterProductos() {
+        const filterText = searchInputProductos.value.toLowerCase();
+        const productoCards = document.querySelectorAll('.producto-card');
+        productoCards.forEach(card => {
+            const text = card.textContent.toLowerCase();
+            card.style.display = text.includes(filterText) ? '' : 'none';
+        });
+    }
+
+    searchInputProductos.addEventListener('keyup', filterProductos);
+
+    // Mostrar el modal cuando se haga clic en la tarjeta de añadir producto
+    addProductCard.addEventListener('click', function() {
+        modal.style.display = "block"; // Mostrar el modal
+    });
+
+    // Cerrar el modal cuando se haga clic en la "X"
+    closeModalButton.addEventListener('click', function() {
+        modal.style.display = "none"; // Ocultar el modal
+    });
+
+    // Cerrar el modal si se hace clic fuera del contenido del modal
+    window.onclick = function(event) {
+        if (event.target == modal) {
+            modal.style.display = "none"; // Ocultar el modal
+        }
+    };
+
+    // Enviar el formulario de producto y fotos al backend
+    addProductForm.addEventListener('submit', function(e) {
+        e.preventDefault(); // Prevenir el comportamiento predeterminado de enviar el formulario
+
+        const formData = new FormData(); // Crear el FormData para enviar imágenes y datos
+        formData.append('nombre', document.getElementById('nombre').value);
+        formData.append('descripcion', document.getElementById('descripcion').value);
+        formData.append('precio', document.getElementById('precio').value);
+        formData.append('fecha_lanzamiento', document.getElementById('fecha_lanzamiento').value);
+        formData.append('desarrollador', document.getElementById('desarrollador').value);
+
+        // Obtener las fotos seleccionadas y añadirlas al FormData
+        const fotos = document.getElementById('fotos').files;
+
+        // Mostrar los nombres de las fotos seleccionadas en la consola
+        console.log("Fotos seleccionadas:");
+        for (let i = 0; i < fotos.length; i++) {
+            console.log(fotos[i].name); // Mostrar el nombre de cada foto seleccionada
+        }
+
+        // Enviar los datos del producto (POST de producto)
+        fetch('/xeo/productos', {
+            method: 'POST',
+            body: formData // Enviamos los datos del producto junto con las fotos
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Producto creado exitosamente') {
+                alert('Producto creado correctamente');
+                const productoId = data.id; // Obtener el ID del producto recién creado
+
+                // Mostrar el ID del producto en la consola para verificar
+                console.log("ID del producto creado:", productoId);
+                
+                // Ahora que tenemos el ID del producto, subimos las fotos
+                const fotoPromises = [];
+                for (let i = 0; i < fotos.length; i++) {
+                    const foto = fotos[i];
+
+                    // Crear objeto JSON para cada foto
+                    const fotoData = {
+                        nombre: foto.name, // Nombre del archivo de la foto
+                        id_producto: productoId // ID del producto recién creado
+                    };
+
+                    // Crear la promesa para enviar cada foto
+                    fotoPromises.push(
+                        fetch('/xeo/fotos_producto', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json' // Especificamos que estamos enviando JSON
+                            },
+                            body: JSON.stringify(fotoData) // Convertimos los datos en formato JSON
+                        })
+                        .then(response => response.json())
+                        .then(fotoData => {
+                            if (fotoData.message === 'Foto del producto creada exitosamente') {
+                                console.log('Foto asociada correctamente');
+                                const imgElement = document.createElement('img');
+                                imgElement.src = '/assets/productos/' + foto.name; // Ruta de la foto
+                                imgElement.alt = foto.name;
+                                imgElement.classList.add('foto-producto'); // Estilo para la foto
+                                fotosContainer.appendChild(imgElement);
+                            } else {
+                                console.error('Error al asociar foto:', fotoData);
+                            }
+                        })
+                        .catch(error => console.error('Error:', error))
+                    );
+                }
+
+                // Esperar a que todas las fotos se suban y asociar
+                Promise.all(fotoPromises)
+                    .then(() => {
+                        // Paso 3: Enviar el tipo de producto dependiendo del tipo seleccionado
+                        const tipoProducto = document.getElementById('tipo_producto').value;
+                        let tipoUrl = '';
+                        const tipoProductoData = { id_producto: productoId };
+
+                        // Comprobamos los campos de consola y dispositivo móvil
+                        if (tipoProducto === 'consola') {
+                            tipoUrl = '/xeo/consolas';
+                            tipoProductoData.almacenamiento = document.getElementById('almacenamiento_consola').value;
+                            tipoProductoData.modelo = document.getElementById('modelo_consola').value;
+                            tipoProductoData.color = document.getElementById('color_consola').value;
+                        } else if (tipoProducto === 'videojuego') {
+                            tipoUrl = '/xeo/videojuegos';
+                            tipoProductoData.precio_alquiler = document.getElementById('precio_alquiler').value;
+                            tipoProductoData.pegi = document.getElementById('pegi').value;
+                        } else if (tipoProducto === 'dispositivo_movil') {
+                            tipoUrl = '/xeo/dispositivos_movil';
+                            tipoProductoData.sistema_operativo = document.getElementById('sistema_operativo').value;
+                            tipoProductoData.tipo = document.getElementById('tipo').value;
+                            tipoProductoData.ram = document.getElementById('ram').value;
+                            tipoProductoData.procesador = document.getElementById('procesador').value;
+                            tipoProductoData.almacenamiento = document.getElementById('almacenamiento_movil').value;
+                        }
+
+                        // Realizar el POST del tipo de producto seleccionado
+                        fetch(tipoUrl, {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json' // Especificamos que estamos enviando JSON
+                            },
+                            body: JSON.stringify(tipoProductoData) // Convertimos los datos en formato JSON
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.message === 'Tipo de producto creado exitosamente') {
+                                console.log('Tipo de producto asociado correctamente');
+                                modal.style.display = "none"; // Cerrar el modal después de agregar el producto y fotos
+                                addProductForm.reset(); // Limpiar el formulario
+                            } else {
+                                console.error('Error al asociar tipo de producto:', data);
+                                alert('Hubo un error al asociar el tipo de producto');
+                            }
+                        })
+                        .catch(error => console.error('Error:', error));
+
+                    })
+                    .catch(error => {
+                        alert('Hubo un error al asociar las fotos');
+                        modal.style.display = "none";
+                    });
+            } else {
+                alert('Hubo un error al añadir el producto');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Hubo un error al añadir el producto');
+        });
+    });
+
+    // Función para mostrar u ocultar campos adicionales según el tipo de producto
+    function mostrarCampos() {
+        // Ocultar todos los campos adicionales al inicio
+        document.getElementById('consola_fields').style.display = 'none';
+        document.getElementById('videojuego_fields').style.display = 'none';
+        document.getElementById('dispositivo_movil_fields').style.display = 'none';
+
+        // Obtener el valor del tipo de producto seleccionado
+        var tipoProducto = document.getElementById('tipo_producto').value;
+
+        // Mostrar los campos correspondientes al tipo de producto
+        if (tipoProducto === 'consola') {
+            document.getElementById('consola_fields').style.display = 'block';
+        } else if (tipoProducto === 'videojuego') {
+            document.getElementById('videojuego_fields').style.display = 'block';
+        } else if (tipoProducto === 'dispositivo_movil') {
+            document.getElementById('dispositivo_movil_fields').style.display = 'block';
+        }
+    }
+
+    // Llamamos a la función al cargar la página para asegurar que no haya campos visibles si no hay selección
+    mostrarCampos();
+
+    // Añadir el evento onchange para el select de tipo de producto
+    document.getElementById('tipo_producto').addEventListener('change', mostrarCampos);
+
+    document.querySelectorAll('.btn-edit').forEach(button => {
+        button.addEventListener('click', function() {
+            const incidenciaId = this.getAttribute('data-id');
+            const fechaFin = this.getAttribute('data-fecha-fin');
+            const estado = this.getAttribute('data-estado');
+            const descripcion = this.getAttribute('data-descripcion');
+
+            // Asignamos los valores al formulario de edición
+            document.getElementById('incidenciaId').value = incidenciaId;
+            document.getElementById('fechaFin').value = fechaFin;
+            document.getElementById('estado').value = estado;
+            document.getElementById('descripcion').value = descripcion;
+
+            // Actualizamos la acción del formulario para usar PUT
+            const form = document.getElementById('formEditarIncidencia');
+            form.action = '/xeo/incidencias/' + incidenciaId;  // Establecemos la URL para el PUT
+        });
+    });
+   $('#modalEditarIncidencia').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget); // Botón que abrió el modal
+    var id = button.data('id');
+    var fechaFin = button.data('fecha-fin');
+    var estado = button.data('estado');
+
+    // Rellenar los campos del formulario con los valores
+    var modal = $(this);
+    modal.find('#formEditarIncidencia').attr('action', '/incidencias/' + id);  // Actualizar la acción del formulario con el ID de la incidencia
+    modal.find('#fechaFin').val(fechaFin);
+    modal.find('#estado').val(estado);
+});
+
+document.querySelectorAll('.btn-edit').forEach(function(button) {
+    button.addEventListener('click', function() {
+        // Obtener los datos de la incidencia del botón
+        const incidenciaId = button.getAttribute('data-id');
+        const fechaFin = button.getAttribute('data-fecha-fin');
+        const estado = button.getAttribute('data-estado');
+
+        // Rellenar los campos del modal con los datos
+        const modal = document.getElementById('modalEditarIncidencia');
+        modal.querySelector('#formEditarIncidencia').action = `/xeo/incidencias/${incidenciaId}/edit`; // Ajusta la ruta aquí
+        modal.querySelector('#fechaFin').value = fechaFin;
+        modal.querySelector('#estado').value = estado;
+    });
+});
+
+  const editarPedidoButtons = document.querySelectorAll('.btn-edit');
+    editarPedidoButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const id = this.getAttribute('data-id');
+            const fechaFin = this.getAttribute('data-fecha-fin');
+            const estado = this.getAttribute('data-estado');
+            
+            // Actualizamos la URL del formulario para el pedido específico
+            const form = document.getElementById('formEditarPedido');
+            form.action = form.action.replace('0', id);  // Reemplazamos el 0 con el id del pedido
+
+            // Rellenamos los campos del formulario
+            document.getElementById('fechaFin').value = fechaFin || '';  // Si no hay fechaFin, lo dejamos vacío
+            document.getElementById('estado').value = estado || '';  // Si no hay estado, lo dejamos vacío
+        });
+    });
+
+
+
+});
+</script>
+
+{% endblock %}

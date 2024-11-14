@@ -1,0 +1,165 @@
+/* Estilos para los botones de las pestañas */
+.buttons {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.tab-button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.tab-button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Estilos para el contenido de los tabs */
+.tab-content {
+    margin-top: 20px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+/* Estilo para la tabla de incidencias */
+.table-incidencias {
+    width: 100%;
+    border-collapse: collapse;  /* Combina los bordes de las celdas */
+    margin-top: 20px;
+    border: 1px solid #ddd;  /* Borde general de la tabla */
+}
+
+.table-incidencias th, .table-incidencias td {
+    padding: 12px;
+    text-align: left;
+    border: 1px solid #ddd;  /* Borde de las celdas */
+    font-size: 14px;
+}
+
+.table-incidencias th {
+    background-color: #f4f4f4;  /* Color de fondo de las cabeceras */
+    font-weight: bold;
+}
+
+.table-incidencias tr:nth-child(even) {
+    background-color: #f9f9f9;  /* Color alternado de las filas */
+}
+
+.table-incidencias tr:hover {
+    background-color: #f1f1f1;  /* Cambio de color cuando el ratón pasa sobre las filas */
+}
+
+/* Contenedor para los botones de las pestañas */
+.buttons {
+    display: flex;
+    margin-bottom: 20px;
+}
+
+.tab-button {
+    padding: 10px;
+    margin-right: 5px;
+    cursor: pointer;
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    text-decoration: none;
+    color: inherit;
+}
+
+.tab-button.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.tab-button:hover {
+    background-color: #007bff;
+    color: white;
+}
+
+/* Estilos para el contenido de los tabs */
+.tab-content {
+    margin-top: 20px;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+
+/* Diseño de la cuadrícula para los productos con flexbox */
+.productos-grid {
+    display: flex;
+    flex-wrap: wrap;  /* Permite que los elementos se ajusten en varias filas */
+    gap: 20px; /* Espacio entre las tarjetas */
+    justify-content: flex-start; /* Asegura que los elementos tengan espacio entre sí */
+}
+
+/* Contenedor para cada producto (tarjeta) */
+.producto-card {
+    width: calc(33.33% - 20px); /* Cada tarjeta ocupa un 33.33% del ancho de la fila menos el espacio de los márgenes (20px) */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;  /* Asegura que haya espacio entre los elementos */
+    text-align: center;
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease-in-out;
+    box-sizing: border-box; /* Asegura que el padding no afecte el tamaño total */
+    min-height: 300px; /* Establecer una altura mínima para los productos */
+}
+
+/* Estilo para las imágenes */
+.producto-foto {
+    width: 250px; /* Asegura que todas las imágenes tengan el mismo ancho */
+    height: 250px; /* Asegura que todas las imágenes tengan la misma altura */
+    object-fit: cover; /* Recorta la imagen adecuadamente */
+    display: block; /* Elimina el espacio debajo de la imagen */
+    border-radius: 5px; /* Bordes redondeados en la imagen */
+    margin-top: 10px; /* Agrega un pequeño margen superior para separar la imagen del borde superior */
+}
+
+/* Efecto al pasar el ratón sobre la tarjeta del producto */
+.producto-card:hover {
+    transform: translateY(-5px);  /* Efecto de elevación */
+}
+
+/* Ajustes para pantallas pequeñas */
+@media (max-width: 768px) {
+    .producto-card {
+        width: calc(50% - 20px); /* Ocupa la mitad del ancho de la fila en pantallas pequeñas */
+        min-height: 250px;  /* Ajusta la altura mínima en pantallas pequeñas */
+    }
+}
+
+@media (max-width: 480px) {
+    .producto-card {
+        width: 100%; /* Ocupa todo el ancho de la fila en pantallas muy pequeñas */
+        min-height: 200px; /* Ajusta la altura mínima en pantallas muy pequeñas */
+    }
+}
+
+

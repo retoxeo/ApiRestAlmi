@@ -1,0 +1,412 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Detalles del Producto{% endblock %}
+
+{% block stylesheets %}
+    {{ parent() }}
+    <style>
+        /* Tu CSS original */
+        body, html {
+            height: 100%;
+            margin: 0; /* Eliminar márgenes predeterminados */
+            display: flex;
+            flex-direction: column; /* Permite apilar los elementos verticalmente */
+            justify-content: flex-start; /* El contenido se alinea hacia la parte superior */
+        }
+
+        h1 {
+            margin-top: 20px;
+            text-align: center; /* Centra el título */
+        }
+
+        .producto-detalle {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 20px; /* Espacio entre las columnas */
+            width: 100vw; /* Ocupar todo el ancho de la ventana del navegador (100% del viewport width) */
+            height: auto; /* Ajuste automático de altura para que se adapte al contenido */
+            padding: 20px 0; /* Agrega algo de espacio en la parte superior e inferior */
+            margin-top: 70px; /* Añadir margen superior para separar del título */
+        }
+
+        .producto-fotos {
+            flex: 0 0 50%; /* 50% del espacio disponible */
+            max-width: 50%; /* Limita el tamaño máximo al 50% */
+        }
+
+        .producto-info {
+            flex: 0 0 50%; /* 50% del espacio disponible */
+            max-width: 50%; /* Limita el tamaño máximo al 50% */
+            margin-top: 20px; /* Añadir margen superior para empujar la información hacia abajo */
+        }
+
+        .carousel-inner {
+            display: flex;
+            justify-content: flex-start; /* Alinea las imágenes hacia la izquierda */
+            align-items: center; /* Centra las imágenes verticalmente */
+            height: 300px; /* Altura fija para el carrusel */
+            padding-left: 325px; /* Agrega algo de espacio a la izquierda */
+            padding-right: 0; /* Elimina el espacio a la derecha */
+        }
+
+        .foto-producto {
+            width: 350px; /* Establece un ancho pequeño para las imágenes */
+            height: 350px; /* Ajuste automático de altura para mantener la proporción */
+            object-fit: cover; /* Asegura que la imagen cubra el área sin distorsionarse */
+            display: block; /* Asegura que la imagen sea un bloque dentro del contenedor */
+        }
+
+        .carousel-control-prev-icon,
+        .carousel-control-next-icon {
+            background-color: black;
+            background-size: 100%, 100%;
+            border-radius: 50%;
+        }
+
+        .carousel-control-prev-icon:hover,
+        .carousel-control-next-icon:hover {
+            background-color: #333;
+        }
+
+        @media (max-width: 768px) {
+            .producto-detalle {
+                flex-direction: column;
+                align-items: center;
+            }
+            .producto-fotos, .producto-info {
+                max-width: 100%;
+                flex: 1;
+            }
+        }
+
+        .btn-editar {
+            display: block;
+            margin-top: 20px;
+            padding: 5px 15px; /* Reduce el padding para hacerlo más pequeño */
+            background-color: #007bff; /* Color de fondo azul */
+            color: white; /* Color del texto */
+            border: none;
+            border-radius: 5px;
+            text-align: center;
+            font-size: 14px;
+            cursor: pointer;
+            width: auto; /* El botón no ocupa todo el ancho, sino que se ajusta al contenido */
+        }
+
+        .btn-editar i {
+            margin-right: 5px; /* Reduce el espacio entre el icono y el texto */
+        }
+
+        .btn-editar:hover {
+            background-color: #0056b3; /* Color más oscuro cuando se pasa el ratón */
+        }
+    </style>
+{% endblock %}
+
+{% block body %}
+    <h1>{{ producto.nombre }}</h1>
+    <div class="producto-detalle">
+        <div class="producto-fotos">
+            <div id="carouselFotosProducto" class="carousel slide" data-ride="carousel">
+                <div class="carousel-inner">
+                    {% for foto in fotos %}
+                        <div class="carousel-item {% if loop.first %}active{% endif %}">
+                            <img src="{{ foto.url }}" class="d-block foto-producto" alt="{{ foto.nombre }}">
+                        </div>
+                    {% endfor %}
+                </div>
+                <a class="carousel-control-prev" href="#carouselFotosProducto" role="button" data-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Anterior</span>
+                </a>
+                <a class="carousel-control-next" href="#carouselFotosProducto" role="button" data-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="sr-only">Siguiente</span>
+                </a>
+            </div>
+        </div>
+
+        <div class="producto-info">
+            <form id="formProducto">
+                <div>
+                    <p><span id="descripcionProducto">{{ producto.descripcion }}</span></p>
+                    <input type="text" id="descripcionProductoInput" class="editable-input" value="{{ producto.descripcion }}" style="display:none" />
+
+                    {% if videojuego is null %}
+                        <p><strong>Precio: </strong><span id="precioProducto">{{ producto.precio }}€</span></p>
+                        <input type="text" id="precioProductoInput" class="editable-input" value="{{ producto.precio }}" style="display:none" />
+                    {% endif %}
+
+                    <p><strong>Stock: </strong><span id="stockProducto">{{ stock }}</span></p>
+                    <input type="number" id="stockProductoInput" class="editable-input" value="{{ stock }}" style="display:none" />
+
+                    {% if consola %}
+                        <p><strong>Almacenamiento:</strong><span id="almacenamientoConsola">{{ consola.almacenamiento }}</span></p>
+                        <input type="text" id="almacenamientoConsolaInput" class="editable-input" value="{{ consola.almacenamiento }}" style="display:none" />
+                    {% elseif videojuego %}
+                        <p><strong>Precio Alquiler:</strong><span id="precioVideojuego">{{ videojuego.precio_alquiler }}€</span></p>
+                        <input type="text" id="precioVideojuegoInput" class="editable-input" value="{{ videojuego.precio_alquiler }}" style="display:none" />
+                        <p><strong>PEGI:</strong><span id="pegiVideojuego">{{ videojuego.pegi }}</span></p>
+                        <input type="text" id="pegiVideojuegoInput" class="editable-input" value="{{ videojuego.pegi }}" style="display:none" />
+                    {% elseif dispositivoMovil %}
+                        <p><strong>Sistema Operativo:</strong><span id="sistemaMovil">{{ dispositivoMovil.sistemaOperativo }}</span></p>
+                        <input type="text" id="sistemaMovilInput" class="editable-input" value="{{ dispositivoMovil.sistemaOperativo }}" style="display:none" />
+                        <p><strong>Tipo:</strong><span id="tipoMovil">{{ dispositivoMovil.tipo }}</span></p>
+                        <input type="text" id="tipoMovilInput" class="editable-input" value="{{ dispositivoMovil.tipo }}" style="display:none" />
+                        <p><strong>RAM:</strong><span id="ramMovil">{{ dispositivoMovil.ram }}</span></p>
+                        <input type="text" id="ramMovilInput" class="editable-input" value="{{ dispositivoMovil.ram }}" style="display:none" />
+                        <p><strong>Procesador:</strong><span id="procesadorMovil">{{ dispositivoMovil.procesador }}</span></p>
+                        <input type="text" id="procesadorMovilInput" class="editable-input" value="{{ dispositivoMovil.procesador }}" style="display:none" />
+                        <p><strong>Almacenamiento:</strong><span id="almacenamientoMovil">{{ dispositivoMovil.almacenamiento }}</span></p>
+                        <input type="text" id="almacenamientoMovilInput" class="editable-input" value="{{ dispositivoMovil.almacenamiento }}" style="display:none" />
+                    {% endif %}
+                </div>
+                <button type="button" class="btn-editar" id="editarBtn" onclick="toggleEdit()">Editar Producto</button>
+                <button type="submit" class="btn-editar" id="guardarBtn" style="display:none;">Guardar Cambios</button>
+            </form>
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+    function toggleEdit() {
+        document.querySelectorAll('.editable-input').forEach(input => input.style.display = 'inline-block');
+        document.querySelectorAll('span[id$="Producto"]').forEach(span => span.style.display = 'none');
+        document.getElementById('editarBtn').style.display = 'none';
+        document.getElementById('guardarBtn').style.display = 'block';
+    }
+
+    document.getElementById('formProducto').onsubmit = function(event) {
+        event.preventDefault();  // Evitar que el formulario se envíe de forma tradicional
+
+        const idProducto = {{ producto.id }};
+        const datosProducto = {
+            descripcion: document.getElementById('descripcionProductoInput').value,
+            {% if videojuego is null %}
+                precio: document.getElementById('precioProductoInput').value,
+            {% endif %}
+        };
+
+        const nuevoStock = document.getElementById('stockProductoInput').value;
+        const stockActual = document.getElementById('stockProducto').textContent;
+
+        fetch(`/xeo/productos/${idProducto}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(datosProducto)
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Producto actualizado exitosamente') {
+                document.getElementById('descripcionProducto').textContent = datosProducto.descripcion;
+                {% if videojuego is null %}
+                    document.getElementById('precioProducto').textContent = `${datosProducto.precio}€`;
+                {% endif %}
+
+                if (nuevoStock !== stockActual) {
+                    actualizarStockProductoTienda(idProducto, nuevoStock);
+                }
+
+                {% if consola %}
+                    // Verificar y actualizar datos de consola
+                    const almacenamientoConsolaInput = document.getElementById('almacenamientoConsolaInput');
+                    const almacenamientoConsola = document.getElementById('almacenamientoConsola');
+                    if (almacenamientoConsolaInput && almacenamientoConsola) {
+                        const nuevoAlmacenamiento = almacenamientoConsolaInput.value;
+                        const almacenamientoActual = almacenamientoConsola.textContent;
+
+                        if (almacenamientoActual !== nuevoAlmacenamiento) {
+                            actualizarAlmacenamientoConsola(nuevoAlmacenamiento);
+                        }
+                    } else {
+                        console.error('Elemento de consola no encontrado');
+                    }
+                {% elseif dispositivoMovil %}
+                    // Verificar y actualizar datos de dispositivo móvil
+                    const sistemaMovilInput = document.getElementById('sistemaMovilInput');
+                    const tipoMovilInput = document.getElementById('tipoMovilInput');
+                    const ramMovilInput = document.getElementById('ramMovilInput');
+                    const procesadorMovilInput = document.getElementById('procesadorMovilInput');
+                    const almacenamientoMovilInput = document.getElementById('almacenamientoMovilInput');
+
+                    if (sistemaMovilInput && tipoMovilInput && ramMovilInput && procesadorMovilInput && almacenamientoMovilInput) {
+                        const idDispositivoMovil = {{ dispositivoMovil.id }};
+                        const datosDispositivoMovil = {
+                            sistema_operativo: sistemaMovilInput.value,
+                            tipo: tipoMovilInput.value,
+                            ram: ramMovilInput.value,
+                            procesador: procesadorMovilInput.value,
+                            almacenamiento: almacenamientoMovilInput.value
+                        };
+                        actualizarDispositivoMovil(idDispositivoMovil, datosDispositivoMovil);
+                    } else {
+                        console.error('Elemento de dispositivo móvil no encontrado');
+                    }
+                {% elseif videojuego %}
+                    // Verificar y actualizar datos de videojuego
+                    const precioVideojuegoInput = document.getElementById('precioVideojuegoInput');
+                    const precioVideojuego = document.getElementById('precioVideojuego');
+                    const pegiVideojuegoInput = document.getElementById('pegiVideojuegoInput');
+                    const pegiVideojuego = document.getElementById('pegiVideojuego');
+
+                    if (precioVideojuegoInput && precioVideojuego && pegiVideojuegoInput && pegiVideojuego) {
+                        const nuevoPrecio = precioVideojuegoInput.value;
+                        const precioActual = precioVideojuego.textContent.replace('€', '');
+                        const nuevoPegi = pegiVideojuegoInput.value;
+                        const pegiActual = pegiVideojuego.textContent;
+
+                        if (precioActual !== nuevoPrecio) {
+                            actualizarPrecioVideojuego(nuevoPrecio);
+                        }
+
+                        if (pegiActual !== nuevoPegi) {
+                            actualizarPegiVideojuego(nuevoPegi);
+                        }
+                    } else {
+                        console.error('Elemento de videojuego no encontrado');
+                    }
+                {% else %}
+                    finalizarEdicion();
+                {% endif %}
+            } else {
+                alert('Error al actualizar el producto');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al actualizar el producto');
+        });
+    };
+
+    function actualizarStockProductoTienda(idProducto, nuevoStock) {
+        fetch(`/xeo/productos_tienda/${idProducto}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ stock: nuevoStock })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.message === 'Producto en tienda actualizado exitosamente') {
+                document.getElementById('stockProducto').textContent = nuevoStock;
+                finalizarEdicion();
+            } else {
+                alert('Error al actualizar el stock del producto en tienda');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al actualizar el stock');
+        });
+    }
+
+    function actualizarAlmacenamientoConsola(nuevoAlmacenamiento) {
+        {% if consola is not null %}
+            const idConsola = {{ consola.id }};
+            fetch(`/xeo/consolas/${idConsola}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ almacenamiento: nuevoAlmacenamiento })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Consola actualizada exitosamente') {
+                    document.getElementById('almacenamientoConsola').textContent = nuevoAlmacenamiento;
+                    finalizarEdicion();
+                } else {
+                    alert('Error al actualizar el almacenamiento de la consola');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el almacenamiento');
+            });
+        {% endif %}
+    }
+
+    function actualizarDispositivoMovil(idDispositivoMovil, datosDispositivoMovil) {
+        {% if dispositivoMovil is not null %}
+            fetch(`/xeo/dispositivos_movil/${idDispositivoMovil}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(datosDispositivoMovil)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Dispositivo móvil actualizado exitosamente') {
+                    document.getElementById('sistemaMovil').textContent = datosDispositivoMovil.sistema_operativo;
+                    document.getElementById('tipoMovil').textContent = datosDispositivoMovil.tipo;
+                    document.getElementById('ramMovil').textContent = datosDispositivoMovil.ram;
+                    document.getElementById('procesadorMovil').textContent = datosDispositivoMovil.procesador;
+                    document.getElementById('almacenamientoMovil').textContent = datosDispositivoMovil.almacenamiento;
+                    finalizarEdicion();
+                } else {
+                    alert('Error al actualizar el dispositivo móvil');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el dispositivo móvil');
+            });
+        {% endif %}
+    }
+
+    function actualizarPrecioVideojuego(nuevoPrecioAlquiler) {
+        {% if videojuego %}
+            const idVideojuego = {{ videojuego.id }};
+            fetch(`/xeo/videojuegos/${idVideojuego}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ precio_alquiler: nuevoPrecioAlquiler })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Videojuego actualizado exitosamente') {
+                    document.getElementById('precioVideojuego').textContent = `${nuevoPrecioAlquiler}€`;
+                    finalizarEdicion();
+                } else {
+                    alert('Error al actualizar el precio de alquiler del videojuego');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el precio de alquiler');
+            });
+        {% endif %}
+    }
+
+    function actualizarPegiVideojuego(nuevoPegi) {
+        {% if videojuego %}
+            const idVideojuego = {{ videojuego.id }};
+            fetch(`/xeo/videojuegos/${idVideojuego}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ pegi: nuevoPegi })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.message === 'Videojuego actualizado exitosamente') {
+                    document.getElementById('pegiVideojuego').textContent = nuevoPegi;
+                    finalizarEdicion();
+                } else {
+                    alert('Error al actualizar el PEGI del videojuego');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('Error al actualizar el PEGI');
+            });
+        {% endif %}
+    }
+
+    function finalizarEdicion() {
+        document.querySelectorAll('.editable-input').forEach(input => input.style.display = 'none');
+        document.querySelectorAll('span[id$="Producto"]').forEach(span => span.style.display = 'inline-block');
+        document.getElementById('guardarBtn').style.display = 'none';
+        document.getElementById('editarBtn').style.display = 'block';
+    }
+</script>
+
+{% endblock %}
